@@ -288,7 +288,7 @@ h1 {
 
 .meta-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
@@ -301,10 +301,6 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.72);
   box-shadow: 0 18px 48px rgba(20, 33, 40, 0.08);
   backdrop-filter: blur(12px);
-}
-
-.meta-card-wide {
-  grid-column: span 1;
 }
 
 .meta-label {
