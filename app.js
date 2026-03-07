@@ -85,6 +85,7 @@ const ITEM_LABELS = Object.fromEntries(ALL_ITEMS.map((item) => [item.id, item.la
 const elements = {
   entryScreen: document.getElementById("entryScreen"),
   inspectionScreen: document.getElementById("inspectionScreen"),
+  inspectionScrollRegion: document.querySelector(".inspection-scroll-region"),
   entryForm: document.getElementById("entryForm"),
   vehicleInput: document.getElementById("vehicleInput"),
   driverInput: document.getElementById("driverInput"),
@@ -127,6 +128,9 @@ boot().catch((error) => {
 
 async function boot() {
   registerServiceWorker();
+  syncViewportHeight();
+  window.addEventListener("resize", syncViewportHeight);
+  window.visualViewport?.addEventListener("resize", syncViewportHeight);
   state.store = await createStore();
   updateStorageBadge();
   elements.startButton.disabled = false;
@@ -505,8 +509,19 @@ function renderInspectionTable() {
 
 function switchScreen(mode) {
   const showingInspection = mode === "inspection";
+
+  if (showingInspection) {
+    window.scrollTo(0, 0);
+  }
+
   elements.entryScreen.hidden = showingInspection;
   elements.inspectionScreen.hidden = !showingInspection;
+  document.documentElement.classList.toggle("is-inspection-mode", showingInspection);
+  document.body.classList.toggle("is-inspection-mode", showingInspection);
+
+  if (showingInspection) {
+    elements.inspectionScrollRegion.scrollTop = 0;
+  }
 }
 
 function updateStorageBadge() {
@@ -736,6 +751,11 @@ function setStatus(element, message, isError = false, isSuccess = false) {
 function toggleBusy(button, busy, idleLabel) {
   button.disabled = busy;
   button.textContent = busy ? (button.id === "sendButton" ? "送信中..." : "読込中...") : idleLabel;
+}
+
+function syncViewportHeight() {
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  document.documentElement.style.setProperty("--viewport-height", `${Math.round(viewportHeight)}px`);
 }
 
 function registerServiceWorker() {
