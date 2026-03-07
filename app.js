@@ -98,6 +98,7 @@ const elements = {
   targetMonthLabel: document.getElementById("targetMonthLabel"),
   sessionTitle: document.getElementById("sessionTitle"),
   pendingSummary: document.getElementById("pendingSummary"),
+  storageModeLabel: document.getElementById("storageModeLabel"),
   tableSection: document.getElementById("tableSection"),
   emptyState: document.getElementById("emptyState"),
   emptyStateText: document.getElementById("emptyStateText"),
@@ -746,7 +747,7 @@ function toggleBusy(button, busy, idleLabel) {
 }
 
 async function clearLegacyCaches() {
-  if (!("serviceWorker" in navigator) || !("caches" in window)) {
+  if (!canAccessServiceWorkerApis()) {
     return;
   }
 
@@ -763,6 +764,18 @@ async function clearLegacyCaches() {
     window.location.reload();
     await new Promise(() => {});
   }
+}
+
+function canAccessServiceWorkerApis() {
+  if (!("serviceWorker" in navigator) || !("caches" in window)) {
+    return false;
+  }
+
+  if (!window.isSecureContext) {
+    return false;
+  }
+
+  return window.location.protocol === "http:" || window.location.protocol === "https:";
 }
 
 
