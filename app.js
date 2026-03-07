@@ -10,7 +10,7 @@ const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const STORAGE_NAMESPACE = "monthly_inspection_app_v1";
 const FIREBASE_REQUIRED_KEYS = ["apiKey", "authDomain", "projectId", "appId"];
 const INSPECTION_GUIDE_MESSAGE = "空欄 → レ → × → ▲　未入力日のみ表示しています。休みの日は日付を押してOKをタップしてください。上の送信ボタンで保存します。";
-const APP_VERSION = "20260307-1";
+const APP_VERSION = "20260307-2";
 
 const INSPECTION_GROUPS = [
   {
@@ -306,8 +306,7 @@ async function createStore() {
     return createFirestoreStore(db, firestoreModule);
   } catch (error) {
     console.error(error);
-    setEntryStatus("Firebase接続に失敗したため、ローカル保存モードに切り替えました。", true);
-    return createLocalStore();
+    throw new Error(`Firebase接続に失敗しました: ${error.message}`);
   }
 }
 
