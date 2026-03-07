@@ -10,6 +10,7 @@ const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const STORAGE_NAMESPACE = "monthly_inspection_app_v1";
 const FIREBASE_REQUIRED_KEYS = ["apiKey", "authDomain", "projectId", "appId"];
 const INSPECTION_GUIDE_MESSAGE = "空欄 → レ → × → ▲　未入力日のみ表示しています。休みの日は日付を押してOKをタップしてください。上の送信ボタンで保存します。";
+const APP_VERSION = "20260307-1";
 
 const INSPECTION_GROUPS = [
   {
@@ -722,6 +723,11 @@ function clearInspectionStatus() {
 }
 
 function setStatus(element, message, isError = false, isSuccess = false) {
+  if (!element) {
+    console.warn("Status target element was not found.");
+    return;
+  }
+
   element.textContent = message;
   element.classList.toggle("is-error", Boolean(message) && isError);
   element.classList.toggle("is-success", Boolean(message) && !isError && isSuccess);
@@ -738,7 +744,7 @@ function registerServiceWorker() {
   }
 
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch((error) => {
+    navigator.serviceWorker.register(`./sw.js?v=${APP_VERSION}`).catch((error) => {
       console.error("Service worker registration failed:", error);
     });
   }, { once: true });

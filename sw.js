@@ -1,11 +1,12 @@
-const CACHE_NAME = "monthly-inspection-shell-v2";
+const APP_VERSION = "20260307-1";
+const CACHE_NAME = `monthly-inspection-shell-${APP_VERSION}`;
 const APP_SHELL = [
   "./",
-  "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./firebase-config.js",
-  "./manifest.webmanifest",
+  `./index.html?v=${APP_VERSION}`,
+  `./styles.css?v=${APP_VERSION}`,
+  `./app.js?v=${APP_VERSION}`,
+  `./firebase-config.js?v=${APP_VERSION}`,
+  `./manifest.webmanifest?v=${APP_VERSION}`,
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-512-maskable.png",
@@ -46,10 +47,10 @@ self.addEventListener("fetch", (event) => {
       fetch(event.request)
         .then((response) => {
           const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", responseClone));
+          caches.open(CACHE_NAME).then((cache) => cache.put(`./index.html?v=${APP_VERSION}`, responseClone));
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(() => caches.match(`./index.html?v=${APP_VERSION}`))
     );
     return;
   }
