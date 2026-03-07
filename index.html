@@ -90,24 +90,26 @@
         </div>
       </section>
 
-      <p id="inspectionStatus" class="status reveal reveal-delay-2" aria-live="polite"></p>
+      <div class="inspection-scroll-region">
+        <p id="inspectionStatus" class="status reveal reveal-delay-2" aria-live="polite"></p>
 
-      <section id="tableSection" class="table-section reveal reveal-delay-2">
-        <div class="table-shell">
-          <table class="inspection-table" aria-label="月次日常点検の入力表">
-            <thead id="inspectionTableHead"></thead>
-            <tbody id="inspectionTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+        <section id="tableSection" class="table-section reveal reveal-delay-2">
+          <div class="table-shell">
+            <table class="inspection-table" aria-label="月次日常点検の入力表">
+              <thead id="inspectionTableHead"></thead>
+              <tbody id="inspectionTableBody"></tbody>
+            </table>
+          </div>
+        </section>
 
-      <section id="emptyState" class="card empty-state" hidden>
-        <div class="card-head">
-          <h2>送信対象はありません</h2>
-          <p>対象月の必要日分はすべて入力済みです。</p>
-        </div>
-        <p id="emptyStateText">次の入力日が来るまで、この画面には未入力日が出ません。</p>
-      </section>
+        <section id="emptyState" class="card empty-state" hidden>
+          <div class="card-head">
+            <h2>送信対象はありません</h2>
+            <p>対象月の必要日分はすべて入力済みです。</p>
+          </div>
+          <p id="emptyStateText">次の入力日が来るまで、この画面には未入力日が出ません。</p>
+        </section>
+      </div>
     </section>
   </main>
 
