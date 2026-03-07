@@ -9,6 +9,7 @@ const HOLIDAY_CHECK = "休";
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const STORAGE_NAMESPACE = "monthly_inspection_app_v1";
 const FIREBASE_REQUIRED_KEYS = ["apiKey", "authDomain", "projectId", "appId"];
+const INSPECTION_GUIDE_MESSAGE = "未入力のみ表示しています。休みの日は日付を押してOKをタップしてください。空欄→レ→×→▲";
 
 const INSPECTION_GROUPS = [
   {
@@ -96,7 +97,6 @@ const elements = {
   inspectionStatus: document.getElementById("inspectionStatus"),
   targetMonthLabel: document.getElementById("targetMonthLabel"),
   sessionTitle: document.getElementById("sessionTitle"),
-  storageModeLabel: document.getElementById("storageModeLabel"),
   tableSection: document.getElementById("tableSection"),
   emptyState: document.getElementById("emptyState"),
   emptyStateText: document.getElementById("emptyStateText"),
@@ -131,7 +131,6 @@ async function boot() {
   window.addEventListener("resize", syncViewportHeight);
   window.visualViewport?.addEventListener("resize", syncViewportHeight);
   state.store = await createStore();
-  updateStorageBadge();
   elements.startButton.disabled = false;
 }
 
@@ -156,7 +155,11 @@ async function handleStart(event) {
     syncDraftForTargetMonth();
     renderInspectionScreen();
     switchScreen("inspection");
-    setInspectionStatus("未入力日のみ表示しています。日付を押すと休みにできます。上の送信ボタンで保存します。", false, true);
+    if (state.pendingDays.length) {
+      setInspectionStatus(INSPECTION_GUIDE_MESSAGE, false, true);
+    } else {
+      clearInspectionStatus();
+    }
   } catch (error) {
     setEntryStatus(`読込に失敗しました: ${error.message}`, true);
   } finally {
@@ -407,7 +410,6 @@ function syncDraftForTargetMonth() {
 }
 
 function renderInspectionScreen() {
-  updateStorageBadge();
   elements.targetMonthLabel.textContent = formatTargetMonthPill(state.targetMonth);
   elements.sessionTitle.textContent = `車番 ${state.session.vehicle} / 運転者 ${state.session.driver}`;
 
@@ -517,10 +519,6 @@ function switchScreen(mode) {
   if (showingInspection) {
     elements.inspectionScrollRegion.scrollTop = 0;
   }
-}
-
-function updateStorageBadge() {
-  elements.storageModeLabel.textContent = state.store?.label || "確認中";
 }
 
 function getRecordForMonth(month) {
