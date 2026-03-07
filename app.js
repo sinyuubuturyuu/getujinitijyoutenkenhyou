@@ -10,7 +10,7 @@ const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const STORAGE_NAMESPACE = "monthly_inspection_app_v1";
 const FIREBASE_REQUIRED_KEYS = ["apiKey", "authDomain", "projectId", "appId"];
 const INSPECTION_GUIDE_MESSAGE = "空欄 → レ → × → ▲　未入力日のみ表示しています。休みの日は日付を押してOKをタップしてください。上の送信ボタンで保存します。";
-const APP_VERSION = "20260307-2";
+const APP_VERSION = "20260307-3";
 
 const INSPECTION_GROUPS = [
   {
@@ -127,8 +127,9 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  registerServiceWorker();
+  await clearLegacyCaches();
   state.store = await createStore();
+  showRuntimeInfo();
   elements.startButton.disabled = false;
 }
 
@@ -405,6 +406,9 @@ function syncDraftForTargetMonth() {
 function renderInspectionScreen() {
   elements.targetMonthLabel.textContent = formatTargetMonthPill(state.targetMonth);
   elements.sessionTitle.textContent = `車番 ${state.session.vehicle} / 運転者 ${state.session.driver}`;
+  elements.storageModeLabel.hidden = false;
+  elements.storageModeLabel.setAttribute("aria-hidden", "false");
+  elements.storageModeLabel.textContent = `保存先: ${state.store?.label || "未設定"} / v${APP_VERSION}`;
 
   if (!state.pendingDays.length) {
     const currentMonth = getCurrentYearMonth();
@@ -721,6 +725,10 @@ function clearInspectionStatus() {
   setStatus(elements.inspectionStatus, "", false, false);
 }
 
+function showRuntimeInfo() {
+  setEntryStatus(`起動確認: 保存先 ${state.store?.label || "未設定"} / v${APP_VERSION}`, false);
+}
+
 function setStatus(element, message, isError = false, isSuccess = false) {
   if (!element) {
     console.warn("Status target element was not found.");
@@ -737,16 +745,24 @@ function toggleBusy(button, busy, idleLabel) {
   button.textContent = busy ? (button.id === "sendButton" ? "送信中..." : "読込中...") : idleLabel;
 }
 
-function registerServiceWorker() {
-  if (!("serviceWorker" in navigator)) {
+async function clearLegacyCaches() {
+  if (!("serviceWorker" in navigator) || !("caches" in window)) {
     return;
   }
 
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register(`./sw.js?v=${APP_VERSION}`).catch((error) => {
-      console.error("Service worker registration failed:", error);
-    });
-  }, { once: true });
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  const cacheKeys = await caches.keys();
+  const legacyCacheKeys = cacheKeys.filter((key) => key.startsWith("monthly-inspection-shell-"));
+  const hasLegacyState = registrations.length > 0 || legacyCacheKeys.length > 0;
+
+  await Promise.all(registrations.map((registration) => registration.unregister()));
+  await Promise.all(legacyCacheKeys.map((key) => caches.delete(key)));
+
+  if (hasLegacyState && !sessionStorage.getItem("monthlyInspectionCacheReset")) {
+    sessionStorage.setItem("monthlyInspectionCacheReset", "1");
+    window.location.reload();
+    await new Promise(() => {});
+  }
 }
 
 
