@@ -97,7 +97,6 @@ const elements = {
   targetMonthLabel: document.getElementById("targetMonthLabel"),
   sessionTitle: document.getElementById("sessionTitle"),
   pendingSummary: document.getElementById("pendingSummary"),
-  storageModeLabel: document.getElementById("storageModeLabel"),
   tableSection: document.getElementById("tableSection"),
   emptyState: document.getElementById("emptyState"),
   emptyStateText: document.getElementById("emptyStateText"),
@@ -129,7 +128,6 @@ boot().catch((error) => {
 async function boot() {
   registerServiceWorker();
   state.store = await createStore();
-  updateStorageBadge();
   elements.startButton.disabled = false;
 }
 
@@ -405,7 +403,6 @@ function syncDraftForTargetMonth() {
 }
 
 function renderInspectionScreen() {
-  updateStorageBadge();
   elements.targetMonthLabel.textContent = formatTargetMonthPill(state.targetMonth);
   elements.sessionTitle.textContent = `車番 ${state.session.vehicle} / 運転者 ${state.session.driver}`;
 
@@ -508,10 +505,6 @@ function switchScreen(mode) {
   const showingInspection = mode === "inspection";
   elements.entryScreen.hidden = showingInspection;
   elements.inspectionScreen.hidden = !showingInspection;
-}
-
-function updateStorageBadge() {
-  elements.storageModeLabel.textContent = state.store?.label || "確認中";
 }
 
 function getRecordForMonth(month) {
