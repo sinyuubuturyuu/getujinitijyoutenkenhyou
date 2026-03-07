@@ -96,7 +96,6 @@ const elements = {
   inspectionStatus: document.getElementById("inspectionStatus"),
   targetMonthLabel: document.getElementById("targetMonthLabel"),
   sessionTitle: document.getElementById("sessionTitle"),
-  pendingSummary: document.getElementById("pendingSummary"),
   storageModeLabel: document.getElementById("storageModeLabel"),
   tableSection: document.getElementById("tableSection"),
   emptyState: document.getElementById("emptyState"),
@@ -415,9 +414,6 @@ function renderInspectionScreen() {
   if (!state.pendingDays.length) {
     const currentMonth = getCurrentYearMonth();
     const isCurrentMonth = state.targetMonth === currentMonth;
-    elements.pendingSummary.textContent = isCurrentMonth
-      ? "本日分まで入力済み、または休み登録済みです。次の未入力日が来たら表示されます。"
-      : "対象月の未入力日はありません。";
     elements.emptyState.hidden = false;
     elements.tableSection.hidden = true;
     elements.emptyStateText.textContent = isCurrentMonth
@@ -426,7 +422,6 @@ function renderInspectionScreen() {
     return;
   }
 
-  elements.pendingSummary.textContent = buildPendingSummary();
   elements.emptyState.hidden = true;
   elements.tableSection.hidden = false;
   renderInspectionTable();
@@ -565,13 +560,6 @@ function getPendingDays(month) {
   }
 
   return days;
-}
-
-function buildPendingSummary() {
-  const currentMonth = getCurrentYearMonth();
-  const isCarryOver = compareYearMonth(state.targetMonth, currentMonth) < 0;
-  const prefix = isCarryOver ? "前月以前の未完了月を表示中。" : "今月の未入力日を表示中。";
-  return `${prefix} 対象日は ${state.pendingDays.join("、")} 日です。日付を押すと休みにできます。横スクロールで右側まで入力できます。`;
 }
 
 function normalizeRecord(record) {
