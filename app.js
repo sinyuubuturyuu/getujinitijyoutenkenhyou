@@ -126,6 +126,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
+  registerServiceWorker();
   state.store = await createStore();
   updateStorageBadge();
   elements.startButton.disabled = false;
@@ -735,6 +736,18 @@ function setStatus(element, message, isError = false, isSuccess = false) {
 function toggleBusy(button, busy, idleLabel) {
   button.disabled = busy;
   button.textContent = busy ? (button.id === "sendButton" ? "送信中..." : "読込中...") : idleLabel;
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((error) => {
+      console.error("Service worker registration failed:", error);
+    });
+  }, { once: true });
 }
 
 
