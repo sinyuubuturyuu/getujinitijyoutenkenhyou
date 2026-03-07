@@ -69,32 +69,45 @@
         <div class="session-summary">
           <p id="targetMonthLabel" class="month-pill"></p>
           <h2 id="sessionTitle">車番 - / 運転者 -</h2>
-          <p id="pendingSummary" hidden aria-hidden="true"></p>
+          <p id="pendingSummary" class="pending-summary"></p>
         </div>
 
         <button id="sendButton" class="button button-primary" type="button">送信</button>
       </header>
 
-      <div class="inspection-scroll-region">
-        <p id="inspectionStatus" class="status reveal reveal-delay-2" aria-live="polite"></p>
+      <section class="meta-strip reveal reveal-delay-1">
+        <div class="meta-card">
+          <span class="meta-label">保存先</span>
+          <strong id="storageModeLabel">確認中</strong>
+        </div>
+        <div class="meta-card">
+          <span class="meta-label">点検記号</span>
+          <strong>空欄 → レ → × → ▲</strong>
+        </div>
+        <div class="meta-card meta-card-wide">
+          <span class="meta-label">表示ルール</span>
+          <strong>未入力日だけ表示します。前月以前の未完了月があれば先に出します。</strong>
+        </div>
+      </section>
 
-        <section id="tableSection" class="table-section reveal reveal-delay-2">
-          <div class="table-shell">
-            <table class="inspection-table" aria-label="月次日常点検の入力表">
-              <thead id="inspectionTableHead"></thead>
-              <tbody id="inspectionTableBody"></tbody>
-            </table>
-          </div>
-        </section>
+      <p id="inspectionStatus" class="status reveal reveal-delay-2" aria-live="polite"></p>
 
-        <section id="emptyState" class="card empty-state" hidden>
-          <div class="card-head">
-            <h2>送信対象はありません</h2>
-            <p>対象月の必要日分はすべて入力済みです。</p>
-          </div>
-          <p id="emptyStateText">次の入力日が来るまで、この画面には未入力日が出ません。</p>
-        </section>
-      </div>
+      <section id="tableSection" class="table-section reveal reveal-delay-2">
+        <div class="table-shell">
+          <table class="inspection-table" aria-label="月次日常点検の入力表">
+            <thead id="inspectionTableHead"></thead>
+            <tbody id="inspectionTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="emptyState" class="card empty-state" hidden>
+        <div class="card-head">
+          <h2>送信対象はありません</h2>
+          <p>対象月の必要日分はすべて入力済みです。</p>
+        </div>
+        <p id="emptyStateText">次の入力日が来るまで、この画面には未入力日が出ません。</p>
+      </section>
     </section>
   </main>
 

@@ -17,9 +17,6 @@
   --radius-xl: 28px;
   --radius-lg: 20px;
   --radius-md: 14px;
-  --viewport-height: 100dvh;
-  --screen-safe-top: env(safe-area-inset-top, 0px);
-  --screen-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
@@ -28,12 +25,6 @@
 
 html {
   scroll-behavior: smooth;
-}
-
-html.is-inspection-mode,
-body.is-inspection-mode {
-  height: var(--viewport-height);
-  overflow: hidden;
 }
 
 body {
@@ -93,12 +84,6 @@ input {
 .screen {
   display: grid;
   gap: 18px;
-}
-
-.screen-inspection {
-  grid-template-rows: auto minmax(0, 1fr);
-  min-width: 0;
-  overflow: hidden;
 }
 
 .brand-block {
@@ -248,8 +233,9 @@ h1 {
 }
 
 .inspection-topbar {
-  position: relative;
-  z-index: 2;
+  position: sticky;
+  top: 12px;
+  z-index: 10;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
@@ -287,26 +273,46 @@ h1 {
   font-weight: 700;
 }
 
+.pending-summary {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.meta-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.meta-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 250, 244, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 48px rgba(20, 33, 40, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.meta-card-wide {
+  grid-column: span 1;
+}
+
+.meta-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .status {
   min-height: 1.5em;
   margin: 0;
   color: var(--muted);
   line-height: 1.5;
-}
-
-.inspection-scroll-region {
-  min-height: 0;
-  min-width: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  touch-action: pan-y pinch-zoom;
-  display: grid;
-  align-content: start;
-  gap: 18px;
-  padding-right: 4px;
-  padding-bottom: 8px;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 .status.is-error {
@@ -318,9 +324,6 @@ h1 {
 }
 
 .table-section {
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
   padding: 12px;
   border-radius: 32px;
   background:
@@ -330,24 +333,11 @@ h1 {
 }
 
 .table-shell {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
-  touch-action: pan-y pinch-zoom;
+  overflow: auto;
   border-radius: 24px;
   border: 1px solid var(--line);
   background:
     linear-gradient(180deg, rgba(255, 253, 250, 0.95), rgba(255, 249, 241, 0.92));
-}
-
-.table-shell.is-dragging,
-.table-shell.is-dragging * {
-  cursor: grabbing;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .inspection-table {
@@ -529,16 +519,13 @@ h1 {
 }
 
 @media (max-width: 900px) {
-  body.is-inspection-mode .app-shell {
-    width: min(100vw - 18px, 100%);
-  }
-
   .app-shell {
     width: min(100vw - 18px, 100%);
     padding-top: 18px;
   }
 
-  .entry-layout {
+  .entry-layout,
+  .meta-strip {
     grid-template-columns: 1fr;
   }
 
@@ -553,17 +540,6 @@ h1 {
   .table-section {
     padding: 10px;
   }
-}
-
-body.is-inspection-mode .app-shell {
-  height: var(--viewport-height);
-  padding-top: max(12px, var(--screen-safe-top));
-  padding-bottom: max(12px, var(--screen-safe-bottom));
-}
-
-body.is-inspection-mode .screen-inspection {
-  min-height: 100%;
-  max-height: 100%;
 }
 
 @media (max-width: 640px) {

@@ -9,8 +9,6 @@ const HOLIDAY_CHECK = "休";
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const STORAGE_NAMESPACE = "monthly_inspection_app_v1";
 const FIREBASE_REQUIRED_KEYS = ["apiKey", "authDomain", "projectId", "appId"];
-const INSPECTION_GUIDE_MESSAGE = "未入力のみ表示しています。休みの日は日付を押してOKをタップしてください。空欄→レ→×→▲";
-const TABLE_DRAG_THRESHOLD = 10;
 
 const INSPECTION_GROUPS = [
   {
@@ -87,8 +85,6 @@ const ITEM_LABELS = Object.fromEntries(ALL_ITEMS.map((item) => [item.id, item.la
 const elements = {
   entryScreen: document.getElementById("entryScreen"),
   inspectionScreen: document.getElementById("inspectionScreen"),
-  inspectionScrollRegion: document.querySelector(".inspection-scroll-region"),
-  tableShell: document.querySelector(".table-shell"),
   entryForm: document.getElementById("entryForm"),
   vehicleInput: document.getElementById("vehicleInput"),
   driverInput: document.getElementById("driverInput"),
@@ -99,6 +95,8 @@ const elements = {
   inspectionStatus: document.getElementById("inspectionStatus"),
   targetMonthLabel: document.getElementById("targetMonthLabel"),
   sessionTitle: document.getElementById("sessionTitle"),
+  pendingSummary: document.getElementById("pendingSummary"),
+  storageModeLabel: document.getElementById("storageModeLabel"),
   tableSection: document.getElementById("tableSection"),
   emptyState: document.getElementById("emptyState"),
   emptyStateText: document.getElementById("emptyStateText"),
@@ -115,15 +113,6 @@ const state = {
   store: null
 };
 
-const tableDragState = {
-  pointerId: null,
-  startX: 0,
-  startY: 0,
-  startScrollLeft: 0,
-  direction: "",
-  suppressClickUntil: 0
-};
-
 elements.startButton.disabled = true;
 
 elements.entryForm.addEventListener("submit", handleStart);
@@ -138,11 +127,8 @@ boot().catch((error) => {
 
 async function boot() {
   registerServiceWorker();
-  syncViewportHeight();
-  window.addEventListener("resize", syncViewportHeight);
-  window.visualViewport?.addEventListener("resize", syncViewportHeight);
-  setupTableHorizontalScroll();
   state.store = await createStore();
+  updateStorageBadge();
   elements.startButton.disabled = false;
 }
 
@@ -167,11 +153,7 @@ async function handleStart(event) {
     syncDraftForTargetMonth();
     renderInspectionScreen();
     switchScreen("inspection");
-    if (state.pendingDays.length) {
-      setInspectionStatus(INSPECTION_GUIDE_MESSAGE, false, true);
-    } else {
-      clearInspectionStatus();
-    }
+    setInspectionStatus("未入力日のみ表示しています。日付を押すと休みにできます。上の送信ボタンで保存します。", false, true);
   } catch (error) {
     setEntryStatus(`読込に失敗しました: ${error.message}`, true);
   } finally {
@@ -422,12 +404,16 @@ function syncDraftForTargetMonth() {
 }
 
 function renderInspectionScreen() {
+  updateStorageBadge();
   elements.targetMonthLabel.textContent = formatTargetMonthPill(state.targetMonth);
   elements.sessionTitle.textContent = `車番 ${state.session.vehicle} / 運転者 ${state.session.driver}`;
 
   if (!state.pendingDays.length) {
     const currentMonth = getCurrentYearMonth();
     const isCurrentMonth = state.targetMonth === currentMonth;
+    elements.pendingSummary.textContent = isCurrentMonth
+      ? "本日分まで入力済み、または休み登録済みです。次の未入力日が来たら表示されます。"
+      : "対象月の未入力日はありません。";
     elements.emptyState.hidden = false;
     elements.tableSection.hidden = true;
     elements.emptyStateText.textContent = isCurrentMonth
@@ -436,6 +422,7 @@ function renderInspectionScreen() {
     return;
   }
 
+  elements.pendingSummary.textContent = buildPendingSummary();
   elements.emptyState.hidden = true;
   elements.tableSection.hidden = false;
   renderInspectionTable();
@@ -518,19 +505,12 @@ function renderInspectionTable() {
 
 function switchScreen(mode) {
   const showingInspection = mode === "inspection";
-
-  if (showingInspection) {
-    window.scrollTo(0, 0);
-  }
-
   elements.entryScreen.hidden = showingInspection;
   elements.inspectionScreen.hidden = !showingInspection;
-  document.documentElement.classList.toggle("is-inspection-mode", showingInspection);
-  document.body.classList.toggle("is-inspection-mode", showingInspection);
+}
 
-  if (showingInspection) {
-    elements.inspectionScrollRegion.scrollTop = 0;
-  }
+function updateStorageBadge() {
+  elements.storageModeLabel.textContent = state.store?.label || "確認中";
 }
 
 function getRecordForMonth(month) {
@@ -570,6 +550,13 @@ function getPendingDays(month) {
   }
 
   return days;
+}
+
+function buildPendingSummary() {
+  const currentMonth = getCurrentYearMonth();
+  const isCarryOver = compareYearMonth(state.targetMonth, currentMonth) < 0;
+  const prefix = isCarryOver ? "前月以前の未完了月を表示中。" : "今月の未入力日を表示中。";
+  return `${prefix} 対象日は ${state.pendingDays.join("、")} 日です。日付を押すと休みにできます。横スクロールで右側まで入力できます。`;
 }
 
 function normalizeRecord(record) {
@@ -749,133 +736,6 @@ function setStatus(element, message, isError = false, isSuccess = false) {
 function toggleBusy(button, busy, idleLabel) {
   button.disabled = busy;
   button.textContent = busy ? (button.id === "sendButton" ? "送信中..." : "読込中...") : idleLabel;
-}
-
-function setupTableHorizontalScroll() {
-  const scroller = elements.tableShell;
-  if (!scroller) return;
-
-  scroller.addEventListener("click", handleTableShellClickCapture, true);
-
-  if ("PointerEvent" in window) {
-    scroller.addEventListener("pointerdown", handleTablePointerDown);
-    scroller.addEventListener("pointermove", handleTablePointerMove);
-    scroller.addEventListener("pointerup", handleTablePointerUp);
-    scroller.addEventListener("pointercancel", handleTablePointerUp);
-    return;
-  }
-
-  scroller.addEventListener("touchstart", handleTableTouchStart, { passive: true });
-  scroller.addEventListener("touchmove", handleTableTouchMove, { passive: false });
-  scroller.addEventListener("touchend", handleTableTouchEnd);
-  scroller.addEventListener("touchcancel", handleTableTouchEnd);
-}
-
-function handleTablePointerDown(event) {
-  if (event.isPrimary === false) return;
-  if (event.pointerType === "mouse" && event.button !== 0) return;
-  beginTableDrag(event.pointerId, event.clientX, event.clientY);
-}
-
-function handleTablePointerMove(event) {
-  if (event.pointerId !== tableDragState.pointerId) return;
-
-  const didScrollHorizontally = updateTableDrag(event.clientX, event.clientY);
-  if (!didScrollHorizontally) return;
-
-  if (elements.tableShell?.setPointerCapture && !elements.tableShell.hasPointerCapture(event.pointerId)) {
-    elements.tableShell.setPointerCapture(event.pointerId);
-  }
-
-  event.preventDefault();
-}
-
-function handleTablePointerUp(event) {
-  if (event.pointerId !== tableDragState.pointerId) return;
-
-  if (elements.tableShell?.hasPointerCapture?.(event.pointerId)) {
-    elements.tableShell.releasePointerCapture(event.pointerId);
-  }
-
-  endTableDrag();
-}
-
-function handleTableTouchStart(event) {
-  if (event.touches.length !== 1) {
-    endTableDrag();
-    return;
-  }
-
-  const touch = event.touches[0];
-  beginTableDrag("touch", touch.clientX, touch.clientY);
-}
-
-function handleTableTouchMove(event) {
-  if (tableDragState.pointerId !== "touch" || event.touches.length !== 1) return;
-
-  const touch = event.touches[0];
-  const didScrollHorizontally = updateTableDrag(touch.clientX, touch.clientY);
-  if (didScrollHorizontally) {
-    event.preventDefault();
-  }
-}
-
-function handleTableTouchEnd() {
-  if (tableDragState.pointerId !== "touch") return;
-  endTableDrag();
-}
-
-function beginTableDrag(pointerId, clientX, clientY) {
-  tableDragState.pointerId = pointerId;
-  tableDragState.startX = clientX;
-  tableDragState.startY = clientY;
-  tableDragState.startScrollLeft = elements.tableShell?.scrollLeft || 0;
-  tableDragState.direction = "";
-  tableDragState.suppressClickUntil = 0;
-  elements.tableShell?.classList.remove("is-dragging");
-}
-
-function updateTableDrag(clientX, clientY) {
-  const deltaX = clientX - tableDragState.startX;
-  const deltaY = clientY - tableDragState.startY;
-
-  if (!tableDragState.direction) {
-    if (
-      Math.abs(deltaX) < TABLE_DRAG_THRESHOLD &&
-      Math.abs(deltaY) < TABLE_DRAG_THRESHOLD
-    ) {
-      return false;
-    }
-
-    tableDragState.direction = Math.abs(deltaX) > Math.abs(deltaY) ? "x" : "y";
-  }
-
-  if (tableDragState.direction !== "x" || !elements.tableShell) {
-    return false;
-  }
-
-  elements.tableShell.classList.add("is-dragging");
-  elements.tableShell.scrollLeft = tableDragState.startScrollLeft - deltaX;
-  tableDragState.suppressClickUntil = Date.now() + 250;
-  return true;
-}
-
-function endTableDrag() {
-  tableDragState.pointerId = null;
-  tableDragState.direction = "";
-  elements.tableShell?.classList.remove("is-dragging");
-}
-
-function handleTableShellClickCapture(event) {
-  if (Date.now() > tableDragState.suppressClickUntil) return;
-  tableDragState.suppressClickUntil = 0;
-  event.preventDefault();
-  event.stopPropagation();
-}
-
-function syncViewportHeight() {
-  const viewportHeight = window.visualViewport?.height || window.innerHeight;
-  document.documentElement.style.setProperty("--viewport-height", `${Math.round(viewportHeight)}px`);
 }
 
 function registerServiceWorker() {

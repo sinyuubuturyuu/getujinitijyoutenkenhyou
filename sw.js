@@ -1,4 +1,4 @@
-const CACHE_NAME = "monthly-inspection-shell-v2";
+const CACHE_NAME = "monthly-inspection-shell-v1";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -11,7 +11,6 @@ const APP_SHELL = [
   "./icons/icon-512-maskable.png",
   "./icons/apple-touch-icon.png"
 ];
-const APP_SHELL_URLS = new Set(APP_SHELL.map((path) => new URL(path, self.location.href).href));
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -50,23 +49,6 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => caches.match("./index.html"))
-    );
-    return;
-  }
-
-  if (APP_SHELL_URLS.has(event.request.url)) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type !== "basic") {
-            return response;
-          }
-
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
     );
     return;
   }
