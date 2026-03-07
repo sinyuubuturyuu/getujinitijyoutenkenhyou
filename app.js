@@ -9,6 +9,7 @@ const HOLIDAY_CHECK = "休";
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const STORAGE_NAMESPACE = "monthly_inspection_app_v1";
 const FIREBASE_REQUIRED_KEYS = ["apiKey", "authDomain", "projectId", "appId"];
+const INSPECTION_GUIDE_MESSAGE = "空欄 → レ → × → ▲　未入力日のみ表示しています。休みの日は日付を押してOKをタップしてください。上の送信ボタンで保存します。";
 
 const INSPECTION_GROUPS = [
   {
@@ -153,7 +154,7 @@ async function handleStart(event) {
     syncDraftForTargetMonth();
     renderInspectionScreen();
     switchScreen("inspection");
-    setInspectionStatus("未入力日のみ表示しています。日付を押すと休みにできます。上の送信ボタンで保存します。", false, true);
+    setInspectionStatus(INSPECTION_GUIDE_MESSAGE, false, true);
   } catch (error) {
     setEntryStatus(`読込に失敗しました: ${error.message}`, true);
   } finally {

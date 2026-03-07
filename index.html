@@ -69,26 +69,11 @@
         <div class="session-summary">
           <p id="targetMonthLabel" class="month-pill"></p>
           <h2 id="sessionTitle">車番 - / 運転者 -</h2>
-          <p id="pendingSummary" class="pending-summary"></p>
+          <p id="pendingSummary" class="pending-summary" hidden aria-hidden="true"></p>
         </div>
 
         <button id="sendButton" class="button button-primary" type="button">送信</button>
       </header>
-
-      <section class="meta-strip reveal reveal-delay-1">
-        <div class="meta-card">
-          <span class="meta-label">保存先</span>
-          <strong id="storageModeLabel">確認中</strong>
-        </div>
-        <div class="meta-card">
-          <span class="meta-label">点検記号</span>
-          <strong>空欄 → レ → × → ▲</strong>
-        </div>
-        <div class="meta-card meta-card-wide">
-          <span class="meta-label">表示ルール</span>
-          <strong>未入力日だけ表示します。前月以前の未完了月があれば先に出します。</strong>
-        </div>
-      </section>
 
       <p id="inspectionStatus" class="status reveal reveal-delay-2" aria-live="polite"></p>
 
