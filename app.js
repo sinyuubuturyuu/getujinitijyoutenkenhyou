@@ -130,7 +130,6 @@ boot().catch((error) => {
 async function boot() {
   await clearLegacyCaches();
   state.store = await createStore();
-  showRuntimeInfo();
   elements.startButton.disabled = false;
 }
 
@@ -407,9 +406,6 @@ function syncDraftForTargetMonth() {
 function renderInspectionScreen() {
   elements.targetMonthLabel.textContent = formatTargetMonthPill(state.targetMonth);
   elements.sessionTitle.textContent = `車番 ${state.session.vehicle} / 運転者 ${state.session.driver}`;
-  elements.storageModeLabel.hidden = false;
-  elements.storageModeLabel.setAttribute("aria-hidden", "false");
-  elements.storageModeLabel.textContent = `保存先: ${state.store?.label || "未設定"} / v${APP_VERSION}`;
 
   if (!state.pendingDays.length) {
     const currentMonth = getCurrentYearMonth();
@@ -724,10 +720,6 @@ function setInspectionStatus(message, isError = false, isSuccess = false) {
 
 function clearInspectionStatus() {
   setStatus(elements.inspectionStatus, "", false, false);
-}
-
-function showRuntimeInfo() {
-  setEntryStatus(`起動確認: 保存先 ${state.store?.label || "未設定"} / v${APP_VERSION}`, false);
 }
 
 function setStatus(element, message, isError = false, isSuccess = false) {
